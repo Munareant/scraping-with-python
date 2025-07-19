@@ -4,19 +4,15 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.keys import Keys
 import time
 
-# Setări Chrome
 chrome_options = Options()
 chrome_options.add_argument("--start-maximized")
 
-# Pornește WebDriver
 driver = webdriver.Chrome(options=chrome_options)
 
-# Deschide pagina comunității
-community_url = "    "  # <- înlocuiește cu linkul tău real
+community_url = "https://x.com/i/communities/1672458762852921344"  # <- LINK
 driver.get(community_url)
 
-# Așteaptă logarea dacă e nevoie
-input("Loghează-te dacă e nevoie, apoi apasă Enter...")
+input("Please log in and wait for the page to load...")
 
 usernames = set()
 scroll_pause = 3
@@ -26,9 +22,7 @@ max_same_scrolls = 5
 last_count = 0
 
 while True:
-    # Adună articolele vizibile
     articles = driver.find_elements(By.TAG_NAME, "article")
-
     for article in articles:
         try:
             spans = article.find_elements(By.TAG_NAME, "span")
@@ -36,17 +30,18 @@ while True:
                 text = span.text.strip()
                 if text.startswith("@") and len(text) > 1 and " " not in text:
                     usernames.add(text)
-
         except:
             continue
 
-    # Scroll jos
+    if len(usernames) >= 15:
+        print("\n I found 15 usernames, stopping the script.")
+        break
+
     driver.find_element(By.TAG_NAME, 'body').send_keys(Keys.END)
     time.sleep(scroll_pause)
 
-    # Verifică dacă mai aduce ceva nou
     current_count = len(usernames)
-    print(f"Utilizatori unici: {current_count}")
+    print(f"Username: {current_count}")
 
     if current_count == last_count:
         same_count += 1
@@ -55,16 +50,14 @@ while True:
         last_count = current_count
 
     if same_count >= max_same_scrolls:
-        print("\n[✓] Nu se mai încarcă utilizatori noi. Oprire automată.")
+        print("\n There's no new usernames, stopping the script.")
         break
 
-# Salvează rezultatele
-with open("users10.txt", "w", encoding="utf-8") as f:
+with open("users.txt", "w", encoding="utf-8") as f:
     for user in sorted(usernames):
         f.write(f"{user} | https://twitter.com/{user[1:]}\n")
 
-print(f"[✓] Gata! {len(usernames)} utilizatori salvați în users.txt")
+print(f" Done! {len(usernames)} usernames were saved in users.txt")
 
-# Așteaptă înainte de închidere
-input("Apasă Enter pentru a închide browserul...")
+input("Press the enter key to exit...")
 driver.quit()
